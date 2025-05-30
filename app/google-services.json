@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1034376890658",
+    "project_id": "nlpquizapp",
+    "storage_bucket": "nlpquizapp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1034376890658:android:5c553313ff87691693bd7b",
+        "android_client_info": {
+          "package_name": "com.example.quizapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCwtGd1CjY0YlJUQRyEI_nhQV4MfWKk8VE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

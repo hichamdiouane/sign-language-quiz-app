@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".Quiz1">
+
+    <!-- Quiz Progress Section -->
+    <RelativeLayout
+        android:id="@+id/progress_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/questionCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:text="Question 1/5"
+            android:textSize="16sp"
+            android:fontFamily="@font/roboto_regular"
+            android:textColor="@android:color/black"/>
+
+    </RelativeLayout>
+
+    <!-- Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/progress_section"
+        android:progress="20"
+        android:progressTint="#4CAF50"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Question Image (styled like CircleImageView) -->
+    <ImageView
+        android:id="@+id/questionImage1"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_below="@id/progressBar"
+        android:layout_centerHorizontal="true"
+        android:scaleType="centerCrop"
+        android:src="@drawable/questionimage_1"
+        android:background="@drawable/round_background"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="Question Image"/>
+
+    <!-- Question Text -->
+    <TextView
+        android:id="@+id/question"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/questionImage1"
+        android:text="Which letter is this?"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:fontFamily="@font/roboto_regular"
+        android:textColor="@android:color/black"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp"/>
+
+    <RadioGroup
+        android:id="@+id/radioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/question"
+        android:layout_marginBottom="24dp">
+
+        <RadioButton
+            android:id="@+id/option1"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="D"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:fontFamily="@font/roboto_regular"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/et_custom"/>
+
+        <RadioButton
+            android:id="@+id/option2"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="C"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:fontFamily="@font/roboto_regular"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/et_custom"/>
+
+        <RadioButton
+            android:id="@+id/option3"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="A"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:fontFamily="@font/roboto_regular"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/et_custom"/>
+
+        <RadioButton
+            android:id="@+id/option4"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="F"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:fontFamily="@font/roboto_regular"
+            android:background="@drawable/et_custom"/>
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/btnNext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/radioGroup"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:text="Next"
+        android:fontFamily="@font/roboto_regular"
+        android:textColor="@android:color/white"
+        android:background="@drawable/btn_custom"/>
+
+</RelativeLayout>
