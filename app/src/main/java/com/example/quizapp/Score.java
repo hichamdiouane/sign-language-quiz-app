@@ -131,13 +131,32 @@ public class Score extends AppCompatActivity {
     }
 
     // Create a POJO class for leaderboard entries
-    static class LeaderboardEntry {
-        public String email;
-        public int score;
+    public static class LeaderboardEntry {
+        private String playerEmail;  // This field name in the class doesn't need to match Firestore
+        private int score;
 
-        public LeaderboardEntry() {} // Needed for Firestore
-        public LeaderboardEntry(String email, int score) {
-            this.email = email;
+        // Required empty constructor for Firestore
+        public LeaderboardEntry() {
+        }
+
+        public LeaderboardEntry(String playerEmail, int score) {
+            this.playerEmail = playerEmail;
+            this.score = score;
+        }
+
+        public String getPlayerEmail() {
+            return playerEmail;
+        }
+
+        public void setPlayerEmail(String playerEmail) {
+            this.playerEmail = playerEmail;
+        }
+
+        public int getScore() {
+            return score;
+        }
+
+        public void setScore(int score) {
             this.score = score;
         }
     }

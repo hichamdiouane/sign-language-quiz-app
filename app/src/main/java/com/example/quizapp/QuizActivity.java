@@ -43,7 +43,9 @@ public class QuizActivity extends AppCompatActivity {
     private int totalQuestions = 5;
     private int score = 0;
     private CountDownTimer timer;
-    private long timeLeftInMillis = 30000; // 30 seconds per question
+    private static final long TIMER_DURATION = 30000; // 30 seconds per question
+    private long timeLeftInMillis = TIMER_DURATION;
+    private boolean isAnswerValidated = false; // Flag to prevent multiple validations
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +65,11 @@ public class QuizActivity extends AppCompatActivity {
         fetchQuestionsFromFirestore();
 
         // Set click listener for the Next button
-        btnNext.setOnClickListener(v -> validateAnswerAndProceed());
+        btnNext.setOnClickListener(v -> {
+            if (!isAnswerValidated) {
+                validateAnswerAndProceed();
+            }
+        });
     }
 
     private void fetchQuestionsFromFirestore() {
@@ -79,7 +85,6 @@ public class QuizActivity extends AppCompatActivity {
                         totalQuestions = questions.size();
                         if (totalQuestions > 0) {
                             displayQuestion(currentQuestionIndex);
-                            startTimer();
                         } else {
                             Toast.makeText(this, "No questions found.", Toast.LENGTH_SHORT).show();
                         }
@@ -112,6 +117,9 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void displayQuestion(int index) {
+        // Reset validation flag
+        isAnswerValidated = false;
+
         // Update question counter
         questionCounterTextView.setText(String.format("Question %d/%d", index + 1, totalQuestions));
 
@@ -123,27 +131,31 @@ public class QuizActivity extends AppCompatActivity {
         Question currentQuestion = questions.get(index);
 
         // Load image from URL (imageUrl field)
-        Picasso.get()
-                .load(currentQuestion.getImageUrl())
-                .into(questionImageView);
+        if (currentQuestion.getImageUrl() != null && !currentQuestion.getImageUrl().isEmpty()) {
+            questionImageView.setVisibility(View.VISIBLE);
+            Picasso.get()
+                    .load(currentQuestion.getImageUrl())
+                    .into(questionImageView);
+        } else {
+            questionImageView.setVisibility(View.GONE);
+        }
 
         // Set question text
         questionTextView.setText(currentQuestion.getQuestionText());
 
-        // Set options
-        option1.setText(currentQuestion.getOptions().get(0));
-        option2.setText(currentQuestion.getOptions().get(1));
-        option3.setText(currentQuestion.getOptions().get(2));
-        option4.setText(currentQuestion.getOptions().get(3));
+        // Set options (with null checks)
+        List<String> options = currentQuestion.getOptions();
+        if (options != null && options.size() >= 4) {
+            option1.setText(options.get(0));
+            option2.setText(options.get(1));
+            option3.setText(options.get(2));
+            option4.setText(options.get(3));
+        }
 
         // Clear any selected options
         radioGroup.clearCheck();
 
-        // Reset timer
-        if (timer != null) {
-            timer.cancel();
-        }
-        timeLeftInMillis = 30000;
+        // Start fresh timer for this question
         startTimer();
 
         // Update button text for last question
@@ -155,6 +167,14 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void startTimer() {
+        // Cancel existing timer if running
+        if (timer != null) {
+            timer.cancel();
+        }
+
+        // Reset time for new question
+        timeLeftInMillis = TIMER_DURATION;
+
         timer = new CountDownTimer(timeLeftInMillis, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -166,7 +186,12 @@ public class QuizActivity extends AppCompatActivity {
             public void onFinish() {
                 timeLeftInMillis = 0;
                 updateTimerText();
-                validateAnswerAndProceed();
+
+                // Only auto-proceed if answer hasn't been validated yet
+                if (!isAnswerValidated) {
+                    Toast.makeText(QuizActivity.this, "Time's up!", Toast.LENGTH_SHORT).show();
+                    validateAnswerAndProceed();
+                }
             }
         }.start();
     }
@@ -176,28 +201,67 @@ public class QuizActivity extends AppCompatActivity {
         int seconds = (int) (timeLeftInMillis / 1000) % 60;
         String timeFormatted = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds);
         timerTextView.setText(timeFormatted);
+
+        // Optional: Change timer color when time is running low
+        if (timeLeftInMillis <= 10000) { // Last 10 seconds
+            timerTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        } else {
+            timerTextView.setTextColor(getResources().getColor(android.R.color.black));
+        }
     }
 
     private void validateAnswerAndProceed() {
-        if (radioGroup.getCheckedRadioButtonId() == -1) {
-            Toast.makeText(this, "Please select an answer", Toast.LENGTH_SHORT).show();
+        // Prevent multiple validations
+        if (isAnswerValidated) {
             return;
         }
 
-        // Check if answer is correct
-        int selectedOptionId = radioGroup.getCheckedRadioButtonId();
-        int selectedOptionIndex = -1;
+        isAnswerValidated = true;
 
-        if (selectedOptionId == R.id.option1) selectedOptionIndex = 0;
-        else if (selectedOptionId == R.id.option2) selectedOptionIndex = 1;
-        else if (selectedOptionId == R.id.option3) selectedOptionIndex = 2;
-        else if (selectedOptionId == R.id.option4) selectedOptionIndex = 3;
-
-        if (selectedOptionIndex == questions.get(currentQuestionIndex).getCorrectAnswerIndex()) {
-            score++;
+        // Stop the timer
+        if (timer != null) {
+            timer.cancel();
         }
 
-        // Move to next question or finish quiz
+        // Check if an answer was selected
+        int selectedOptionId = radioGroup.getCheckedRadioButtonId();
+        if (selectedOptionId == -1) {
+            // No answer selected - treat as incorrect
+            Toast.makeText(this, "No answer selected - moving to next question", Toast.LENGTH_SHORT).show();
+        } else {
+            // Check if answer is correct
+            int selectedOptionIndex = getSelectedOptionIndex(selectedOptionId);
+
+            if (selectedOptionIndex != -1 &&
+                    selectedOptionIndex == questions.get(currentQuestionIndex).getCorrectAnswerIndex()) {
+                score++;
+                Toast.makeText(this, "Correct!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Incorrect!", Toast.LENGTH_SHORT).show();
+            }
+        }
+
+        // Move to next question or finish quiz after a short delay
+        new CountDownTimer(1500, 1500) {
+            @Override
+            public void onTick(long millisUntilFinished) {}
+
+            @Override
+            public void onFinish() {
+                proceedToNextQuestion();
+            }
+        }.start();
+    }
+
+    private int getSelectedOptionIndex(int selectedOptionId) {
+        if (selectedOptionId == R.id.option1) return 0;
+        else if (selectedOptionId == R.id.option2) return 1;
+        else if (selectedOptionId == R.id.option3) return 2;
+        else if (selectedOptionId == R.id.option4) return 3;
+        return -1;
+    }
+
+    private void proceedToNextQuestion() {
         if (currentQuestionIndex < totalQuestions - 1) {
             currentQuestionIndex++;
             displayQuestion(currentQuestionIndex);
@@ -207,6 +271,7 @@ public class QuizActivity extends AppCompatActivity {
     }
 
     private void finishQuiz() {
+        // Make sure timer is cancelled
         if (timer != null) {
             timer.cancel();
         }
@@ -217,6 +282,24 @@ public class QuizActivity extends AppCompatActivity {
         intent.putExtra("totalQuestions", totalQuestions);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Pause timer when activity is paused
+        if (timer != null) {
+            timer.cancel();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Restart timer when activity resumes (if quiz is still active)
+        if (!isAnswerValidated && questions != null && !questions.isEmpty()) {
+            startTimer();
+        }
     }
 
     @Override
